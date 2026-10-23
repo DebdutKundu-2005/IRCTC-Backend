@@ -45,10 +45,7 @@ class StationAPITestCase(APITestCase):
             is_active=False
         )
 
-    # --------------------------------------------------
     # TEST 1: List stations
-    # --------------------------------------------------
-
     def test_station_list(self):
 
         url = reverse('station-list-create')
@@ -65,10 +62,7 @@ class StationAPITestCase(APITestCase):
             3
         )
 
-    # --------------------------------------------------
     # TEST 2: Search by station code
-    # --------------------------------------------------
-
     def test_search_by_station_code(self):
 
         url = reverse('station-list-create')
@@ -95,10 +89,7 @@ class StationAPITestCase(APITestCase):
             'HWH'
         )
 
-    # --------------------------------------------------
     # TEST 3: Search by city
-    # --------------------------------------------------
-
     def test_search_by_city(self):
 
         url = reverse('station-list-create')
@@ -125,10 +116,7 @@ class StationAPITestCase(APITestCase):
             'Howrah'
         )
 
-    # --------------------------------------------------
     # TEST 4: Search is case insensitive
-    # --------------------------------------------------
-
     def test_search_case_insensitive(self):
 
         url = reverse('station-list-create')
@@ -150,10 +138,7 @@ class StationAPITestCase(APITestCase):
             1
         )
 
-    # --------------------------------------------------
     # TEST 5: Station detail
-    # --------------------------------------------------
-
     def test_station_detail(self):
 
         url = reverse(
@@ -173,10 +158,7 @@ class StationAPITestCase(APITestCase):
             'HWH'
         )
 
-    # --------------------------------------------------
-    # TEST 6: Create station requires authentication
-    # --------------------------------------------------
-
+ # TEST 6: Create station requires authentication
     def test_create_station_requires_authentication(self):
 
         url = reverse('station-list-create')
@@ -198,11 +180,8 @@ class StationAPITestCase(APITestCase):
             response.status_code,
             401
         )
-
-    # --------------------------------------------------
+   
     # TEST 7: Authenticated user can create station
-    # --------------------------------------------------
-
     def test_authenticated_user_can_create_station(self):
 
         self.client.force_authenticate(

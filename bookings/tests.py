@@ -49,10 +49,7 @@ class BookingAPITestCase(APITestCase):
         # Login/authenticate user
         self.client.force_authenticate(user=self.user)
 
-    # --------------------------------------------------
     # TEST 1: Create confirmed booking
-    # --------------------------------------------------
-
     @patch('bookings.views.send_booking_confirmation_email.delay')
     def test_create_confirmed_booking(self, mock_email):
         url = reverse('booking-list-create')
@@ -93,10 +90,7 @@ class BookingAPITestCase(APITestCase):
             booking.id
         )
 
-    # --------------------------------------------------
     # TEST 2: Add passenger and check seat allocation
-    # --------------------------------------------------
-
     @patch('bookings.views.send_booking_confirmation_email.delay')
     def test_passenger_gets_seat(self, mock_email):
 
@@ -137,10 +131,7 @@ class BookingAPITestCase(APITestCase):
             'S1'
         )
 
-    # --------------------------------------------------
     # TEST 3: Second booking goes to waiting list
-    # --------------------------------------------------
-
     @patch('bookings.views.send_booking_confirmation_email.delay')
     def test_waiting_list_booking(self, mock_email):
 
@@ -191,10 +182,7 @@ class BookingAPITestCase(APITestCase):
             'WAITING'
         )
 
-    # --------------------------------------------------
     # TEST 4: Waiting passenger gets no seat
-    # --------------------------------------------------
-
     def test_waiting_passenger_has_no_seat(self):
 
         booking = Booking.objects.create(
@@ -231,10 +219,7 @@ class BookingAPITestCase(APITestCase):
             passenger.seat_number
         )
 
-    # --------------------------------------------------
     # TEST 5: Booking detail
-    # --------------------------------------------------
-
     def test_booking_detail(self):
 
         booking = Booking.objects.create(
@@ -262,10 +247,7 @@ class BookingAPITestCase(APITestCase):
             booking.id
         )
 
-    # --------------------------------------------------
     # TEST 6: PNR search
-    # --------------------------------------------------
-
     def test_pnr_search(self):
 
         booking = Booking.objects.create(
@@ -301,17 +283,11 @@ class BookingAPITestCase(APITestCase):
             self.train.train_number
         )
 
-    # --------------------------------------------------
     # TEST 7: Cancel booking and promote waiting booking
-    # --------------------------------------------------
-
     @patch('bookings.views.send_booking_confirmation_email.delay')
     def test_cancel_promotes_waiting_booking(self, mock_email):
 
-        # ------------------------------------------
         # First confirmed booking
-        # ------------------------------------------
-
         first_booking = Booking.objects.create(
             user=self.user,
             train=self.train,
@@ -327,12 +303,8 @@ class BookingAPITestCase(APITestCase):
             gender='MALE',
             seat_number='S1'
         )
-       
 
-        # ------------------------------------------
         # Second booking goes to waiting
-        # ------------------------------------------
-
         waiting_booking = Booking.objects.create(
             user=self.user2,
             train=self.train,
@@ -354,10 +326,7 @@ class BookingAPITestCase(APITestCase):
             user=self.user
         )
 
-        # ------------------------------------------
         # Cancel first booking
-        # ------------------------------------------
-
         url = reverse(
             'booking-cancel',
             kwargs={'pk': first_booking.id}

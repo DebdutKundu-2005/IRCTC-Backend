@@ -33,7 +33,6 @@ class TrainSearchView(generics.ListAPIView):
 
         return queryset
 
-
 class TrainDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Train.objects.all()
     serializer_class = TrainSerializer

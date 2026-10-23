@@ -58,11 +58,8 @@ class PaymentAPITestCase(APITestCase):
         self.client.force_authenticate(
             user=self.user
         )
-
-    # --------------------------------------------------
+        
     # TEST 1: Create payment
-    # --------------------------------------------------
-
     def test_create_payment(self):
 
         url = reverse('payment-create')
@@ -103,10 +100,7 @@ class PaymentAPITestCase(APITestCase):
             payment.transaction_id
         )
 
-    # --------------------------------------------------
     # TEST 2: Successful payment
-    # --------------------------------------------------
-
     def test_payment_success(self):
 
         payment = Payment.objects.create(
@@ -143,10 +137,7 @@ class PaymentAPITestCase(APITestCase):
             payment.transaction_id.startswith('TXN-')
         )
 
-    # --------------------------------------------------
     # TEST 3: Failed payment
-    # --------------------------------------------------
-
     def test_payment_failed(self):
 
         payment = Payment.objects.create(
@@ -175,10 +166,7 @@ class PaymentAPITestCase(APITestCase):
             'FAILED'
         )
 
-    # --------------------------------------------------
     # TEST 4: Completed payment cannot be failed
-    # --------------------------------------------------
-
     def test_completed_payment_cannot_be_failed(self):
 
         payment = Payment.objects.create(
@@ -208,10 +196,7 @@ class PaymentAPITestCase(APITestCase):
             'COMPLETED'
         )
 
-    # --------------------------------------------------
     # TEST 5: Failed payment cannot be successful
-    # --------------------------------------------------
-
     def test_failed_payment_cannot_be_successful(self):
 
         payment = Payment.objects.create(
@@ -240,10 +225,7 @@ class PaymentAPITestCase(APITestCase):
             'FAILED'
         )
 
-    # --------------------------------------------------
     # TEST 6: Duplicate payment not allowed
-    # --------------------------------------------------
-
     def test_duplicate_payment_not_allowed(self):
 
         Payment.objects.create(
@@ -271,10 +253,7 @@ class PaymentAPITestCase(APITestCase):
             400
         )
 
-    # --------------------------------------------------
     # TEST 7: Cancelled booking cannot be paid
-    # --------------------------------------------------
-
     def test_cancelled_booking_payment_not_allowed(self):
 
         self.booking.status = 'CANCELLED'
@@ -300,10 +279,7 @@ class PaymentAPITestCase(APITestCase):
             400
         )
 
-    # --------------------------------------------------
     # TEST 8: User cannot pay for another user's booking
-    # --------------------------------------------------
-
     def test_other_user_cannot_pay_for_booking(self):
 
         self.client.force_authenticate(
@@ -382,9 +358,8 @@ class PaymentAPITestCase(APITestCase):
             response.data['booking_pnr'],
             self.booking.pnr
         )
-# --------------------------------------------------
+
 # TEST 11: Successful payment belongs to correct booking
-# --------------------------------------------------
     def test_successful_payment_booking(self):
         payment = Payment.objects.create(
             booking=self.booking,

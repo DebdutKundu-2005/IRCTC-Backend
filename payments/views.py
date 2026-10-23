@@ -13,20 +13,14 @@ from .serializers import PaymentSerializer
 from bookings.tasks import send_booking_confirmation_email
 
 
-# =========================================================
 # PAYMENT PROCESS REQUEST SERIALIZER
-# =========================================================
-
 class PaymentProcessRequestSerializer(serializers.Serializer):
     action = serializers.ChoiceField(
         choices=["SUCCESS", "FAILED"]
     )
 
 
-# =========================================================
 # CREATE PAYMENT
-# =========================================================
-
 class PaymentCreateView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -46,11 +40,7 @@ class PaymentCreateView(generics.CreateAPIView):
             status="PENDING"
         )
 
-
-# =========================================================
 # PAYMENT SUCCESS
-# =========================================================
-
 class PaymentSuccessView(generics.UpdateAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -117,10 +107,7 @@ class PaymentSuccessView(generics.UpdateAPIView):
         )
 
 
-# =========================================================
 # PAYMENT FAILED
-# =========================================================
-
 class PaymentFailedView(generics.UpdateAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -181,11 +168,7 @@ class PaymentFailedView(generics.UpdateAPIView):
             status=status.HTTP_200_OK,
         )
 
-
-# =========================================================
 # PAYMENT DETAIL
-# =========================================================
-
 class PaymentDetailView(generics.RetrieveAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -195,11 +178,7 @@ class PaymentDetailView(generics.RetrieveAPIView):
             booking__user=self.request.user
         )
 
-
-# =========================================================
 # PAYMENT PROCESS
-# =========================================================
-
 class PaymentProcessView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -212,10 +191,7 @@ class PaymentProcessView(APIView):
     )
     def post(self, request, payment_id):
 
-        # -------------------------------------------------
         # Validate request body
-        # -------------------------------------------------
-
         serializer = PaymentProcessRequestSerializer(
             data=request.data
         )
@@ -226,10 +202,7 @@ class PaymentProcessView(APIView):
 
         payment_action = serializer.validated_data["action"]
 
-        # -------------------------------------------------
         # Get payment
-        # -------------------------------------------------
-
         try:
          payment = Payment.objects.select_related(
           "booking"
@@ -246,11 +219,8 @@ class PaymentProcessView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-        # -------------------------------------------------
+        
         # Check payment owner
-        # -------------------------------------------------
-
         if payment.booking.user != request.user:
 
             return Response(
@@ -262,10 +232,7 @@ class PaymentProcessView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # -------------------------------------------------
         # Payment must be PENDING
-        # -------------------------------------------------
-
         if payment.status != "PENDING":
 
             return Response(
@@ -277,11 +244,8 @@ class PaymentProcessView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # -------------------------------------------------
+        
         # Generate transaction ID
-        # -------------------------------------------------
-
         transaction_id = (
             f"TXN-{uuid.uuid4().hex[:12].upper()}"
         )
@@ -300,10 +264,7 @@ class PaymentProcessView(APIView):
             ]
         )
 
-        # -------------------------------------------------
         # SUCCESS
-        # -------------------------------------------------
-
         if payment_action == "SUCCESS":
 
             payment.booking.status = "CONFIRMED"
@@ -317,10 +278,8 @@ class PaymentProcessView(APIView):
                 payment.booking.id
             )
 
-        # -------------------------------------------------
-        # FAILED
-        # -------------------------------------------------
 
+        # FAILED
         elif payment_action == "FAILED":
 
             payment.booking.status = "CANCELLED"
@@ -329,10 +288,7 @@ class PaymentProcessView(APIView):
                 update_fields=["status"]
             )
 
-        # -------------------------------------------------
         # Response
-        # -------------------------------------------------
-
         return Response(
             {
                 "message": (

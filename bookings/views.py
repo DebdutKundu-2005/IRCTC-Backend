@@ -16,11 +16,7 @@ from .serializers import (
 )
 from .tasks import send_booking_confirmation_email
 
-
-# ============================================================
 # FIND NEXT AVAILABLE SEAT
-# ============================================================
-
 def get_next_available_seat(train, journey_date):
     occupied_seats = Passenger.objects.filter(
         booking__train=train,
@@ -48,11 +44,7 @@ def get_next_available_seat(train, journey_date):
 
     return None
 
-
-# ============================================================
 # BOOKING LIST + CREATE
-# ============================================================
-
 class BookingListCreateView(generics.ListCreateAPIView):
 
     serializer_class = BookingSerializer
@@ -79,20 +71,14 @@ class BookingListCreateView(generics.ListCreateAPIView):
             'GENERAL'
         )
 
-        # ----------------------------------------------------
         # Calculate fare using train type, distance and class
-        # ----------------------------------------------------
-
         fare_amount = calculate_booking_fare(
             train=train,
             total_passengers=total_passengers,
             travel_class=travel_class
         )
 
-        # ----------------------------------------------------
         # Count seats reserved by CONFIRMED bookings
-        # ----------------------------------------------------
-
         booked_seats = Booking.objects.filter(
             train=train,
             journey_date=journey_date,
@@ -103,29 +89,20 @@ class BookingListCreateView(generics.ListCreateAPIView):
 
         available_seats = train.total_seats - booked_seats
 
-        # ----------------------------------------------------
         # Decide booking status
-        # ----------------------------------------------------
-
         if available_seats >= total_passengers:
             status = 'CONFIRMED'
         else:
             status = 'WAITING'
 
-        # ----------------------------------------------------
         # Create booking with calculated fare
-        # ----------------------------------------------------
-
         booking = serializer.save(
             user=self.request.user,
             status=status,
             fare_amount=fare_amount
         )
 
-        # ----------------------------------------------------
         # Send email ONLY for confirmed booking
-        # ----------------------------------------------------
-
         if booking.status == 'CONFIRMED':
             transaction.on_commit(
                 lambda: send_booking_confirmation_email.delay(
@@ -133,10 +110,7 @@ class BookingListCreateView(generics.ListCreateAPIView):
                 )
             )
 
-# ============================================================
 # PASSENGER CREATE
-# ============================================================
-
 class PassengerListCreateView(generics.CreateAPIView):
 
     serializer_class = PassengerSerializer
@@ -152,19 +126,13 @@ class PassengerListCreateView(generics.CreateAPIView):
             user=self.request.user
         )
 
-        # ----------------------------------------------------
         # Cancelled booking
-        # ----------------------------------------------------
-
         if booking.status == 'CANCELLED':
             raise serializers.ValidationError(
                 "Cannot add passenger to a cancelled booking."
             )
 
-        # ----------------------------------------------------
         # Check passenger limit
-        # ----------------------------------------------------
-
         existing_passengers = Passenger.objects.filter(
             booking=booking
         ).count()
@@ -175,11 +143,8 @@ class PassengerListCreateView(generics.CreateAPIView):
                 "have already been added."
             )
 
-        # ----------------------------------------------------
         # WAITING booking
         # No seat assigned
-        # ----------------------------------------------------
-
         if booking.status == 'WAITING':
 
             serializer.save(
@@ -189,11 +154,8 @@ class PassengerListCreateView(generics.CreateAPIView):
 
             return
 
-        # ----------------------------------------------------
         # CONFIRMED booking
         # Find available seat
-        # ----------------------------------------------------
-
         train = booking.train
 
         seat_number = get_next_available_seat(
@@ -212,11 +174,7 @@ class PassengerListCreateView(generics.CreateAPIView):
             seat_number=seat_number
         )
 
-
-# ============================================================
 # BOOKING DETAIL
-# ============================================================
-
 class BookingDetailView(generics.RetrieveAPIView):
 
     serializer_class = BookingSerializer
@@ -227,11 +185,7 @@ class BookingDetailView(generics.RetrieveAPIView):
             user=self.request.user
         )
 
-
-# ============================================================
 # PNR SEARCH
-# ============================================================
-
 class PNRSearchView(generics.RetrieveAPIView):
 
     serializer_class = PNRBookingSerializer
@@ -246,11 +200,7 @@ class PNRSearchView(generics.RetrieveAPIView):
             pnr=pnr
         )
 
-
-# ============================================================
 # BOOKING CANCEL
-# ============================================================
-
 class BookingCancelView(generics.UpdateAPIView):
 
     serializer_class = BookingSerializer
@@ -264,44 +214,29 @@ class BookingCancelView(generics.UpdateAPIView):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
 
-        # ----------------------------------------------------
         # Get booking
-        # ----------------------------------------------------
-
         booking = self.get_object()
 
-        # ----------------------------------------------------
         # Already cancelled
-        # ----------------------------------------------------
-
         if booking.status == 'CANCELLED':
             raise serializers.ValidationError(
                 "This booking is already cancelled."
             )
 
-        # ----------------------------------------------------
         # Past journey cannot be cancelled
-        # ----------------------------------------------------
-
         if booking.journey_date < date.today():
             raise serializers.ValidationError(
                 "Past journey bookings cannot be cancelled."
             )
-
-        # ----------------------------------------------------
+        
         # Cancel current booking
-        # ----------------------------------------------------
-
         booking.status = 'CANCELLED'
 
         booking.save(
             update_fields=['status']
         )
 
-        # ----------------------------------------------------
         # Find oldest WAITING booking
-        # ----------------------------------------------------
-
         waiting_booking = Booking.objects.filter(
             train=booking.train,
             journey_date=booking.journey_date,
@@ -312,10 +247,7 @@ class BookingCancelView(generics.UpdateAPIView):
 
         promoted_booking = None
 
-        # ----------------------------------------------------
         # Promote waiting booking
-        # ----------------------------------------------------
-
         if waiting_booking:
 
             # Count currently reserved seats
@@ -332,10 +264,7 @@ class BookingCancelView(generics.UpdateAPIView):
                 - confirmed_seats
             )
 
-            # ------------------------------------------------
             # Promote ONLY if enough seats are available
-            # ------------------------------------------------
-
             if available_seats >= waiting_booking.total_passengers:
 
                 waiting_booking.status = 'CONFIRMED'
@@ -344,10 +273,7 @@ class BookingCancelView(generics.UpdateAPIView):
                     update_fields=['status']
                 )
 
-                # --------------------------------------------
                 # Assign DIFFERENT seats to passengers
-                # --------------------------------------------
-
                 waiting_passengers = Passenger.objects.filter(
                     booking=waiting_booking
                 )
@@ -370,20 +296,14 @@ class BookingCancelView(generics.UpdateAPIView):
 
                 promoted_booking = waiting_booking
 
-                # --------------------------------------------
                 # Send confirmation email
-                # --------------------------------------------
-
                 transaction.on_commit(
                     lambda: send_booking_confirmation_email.delay(
                         waiting_booking.id
                     )
                 )
 
-        # ----------------------------------------------------
         # Response
-        # ----------------------------------------------------
-
         response_data = {
             'message': 'Booking cancelled successfully.',
             'pnr': booking.pnr,
