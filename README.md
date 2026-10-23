@@ -293,9 +293,8 @@ schema and Swagger UI paths.
 
 **Debdut Kundu**
 
--   GitHub: [@soumen-mudi](https://github.com/DebdutKundu-2005)
--   LinkedIn: [Soumen
-    Mudi](https://www.linkedin.com/)
+-   GitHub: [@DebdutKundu-2005](https://github.com/DebdutKundu-2005)
+-   LinkedIn: [Debdut Kundu](https://www.linkedin.com/in/debdut-kundu-79632a37b/)
 
 ------------------------------------------------------------------------
 
