@@ -1,37 +1,126 @@
-# IRCTC Backend API
+# 🚆 IRCTC Backend
 
-A railway ticket booking backend built using **Python, Django REST Framework, PostgreSQL, Redis, and Celery**.
+A REST API backend for a railway ticket booking system built with
+**Python, Django, Django REST Framework, PostgreSQL, Redis, and
+Celery**. It models key railway-booking workflows such as train
+management, passenger details, seat allocation, PNR lookup, booking
+cancellation, payment records, and asynchronous booking-confirmation
+emails.
 
-## Features
+> **Project status:** Under development. Check the source code for the
+> currently implemented endpoints and configuration before using this
+> project in production.
 
-- User authentication and protected API endpoints
-- Train and station management
-- Train route distance and configurable fare calculation
-- Local and Express train fare configuration
-- Travel-class-based fare configuration
-- Ticket booking with PNR generation
-- Passenger management and seat allocation
-- Confirmed and waiting-list bookings
-- Booking cancellation and waiting-list promotion
-- Payment processing with amount validation
-- Asynchronous booking confirmation emails using Celery
-- Redis integration for background task processing
-- API documentation using Swagger / OpenAPI
-- Automated tests for core booking and payment workflows
+------------------------------------------------------------------------
 
-## Tech Stack
+## ✨ Features
 
-- **Language:** Python
-- **Backend:** Django, Django REST Framework
-- **Database:** PostgreSQL
-- **Background Tasks:** Celery
-- **Message Broker / Cache:** Redis
-- **API Documentation:** drf-spectacular / Swagger UI
-- **Version Control:** Git and GitHub
+### 👤 User & API Access
 
-## Project Structure
+-   User authentication and protected API endpoints.
+-   REST APIs built with Django REST Framework.
 
-```text
+### 🚉 Train & Station Management
+
+-   Store train details such as train number, name, source, destination,
+    timings, and seat capacity.
+-   Store station-related information.
+-   Configure train distance for fare calculation.
+
+### 🎟️ Booking & Passenger Management
+
+-   Create and view bookings.
+-   Associate passenger details with bookings.
+-   Allocate seats and check occupied seats.
+-   Generate a PNR for a booking.
+-   Search bookings using PNR.
+-   Cancel bookings and track booking status.
+
+### 💳 Payment Management
+
+-   Create payment records associated with bookings.
+-   Track payment status: `PENDING`, `COMPLETED`, and `FAILED`.
+-   Validate payment amount and booking ownership.
+-   Guard against duplicate payment processing.
+
+### ⚙️ Background Tasks
+
+-   Use **Celery** for asynchronous booking-confirmation email tasks.
+-   Use **Redis** as the supporting broker/service where configured.
+
+### 📚 API Documentation & Testing
+
+-   OpenAPI schema documentation with **drf-spectacular**.
+-   Automated API tests for booking-related workflows.
+
+------------------------------------------------------------------------
+
+## 🧰 Tech Stack
+
+  -----------------------------------------------------------------------
+  Technology                          Purpose
+  ----------------------------------- -----------------------------------
+  Python                              Programming language
+
+  Django                              Backend framework
+
+  Django REST Framework               REST API development
+
+  PostgreSQL                          Relational database
+
+  Redis                               Celery broker / supporting service,
+                                      depending on configuration
+
+  Celery                              Background task processing
+
+  Simple JWT                          JWT authentication, if enabled in
+                                      the current settings
+
+  drf-spectacular                     OpenAPI schema and API
+                                      documentation
+
+  Git & GitHub                        Version control
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## 🏗️ Architecture
+
+``` text
+Client / API Consumer
+        |
+        v
+Django REST Framework API
+        |
+        +--> Accounts
+        +--> Trains
+        +--> Stations
+        +--> Bookings -----> Passenger & Seat Allocation
+        +--> Payments
+        |
+        v
+    PostgreSQL
+
+Booking workflow
+        |
+        v
+   Celery Task
+        |
+        v
+Booking Confirmation Email
+        |
+        v
+      Redis
+```
+
+The exact request flow and service configuration depend on the current
+project settings.
+
+------------------------------------------------------------------------
+
+## 📁 Project Structure
+
+``` text
 IRCTC/
 ├── accounts/
 ├── bookings/
@@ -40,122 +129,175 @@ IRCTC/
 ├── stations/
 ├── trains/
 ├── manage.py
+├── requirements.txt
 ├── schema.yml
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
-## Prerequisites
+------------------------------------------------------------------------
 
-- Python 3
-- PostgreSQL
-- Redis
-- Git
-
-## Installation
+## 🚀 Getting Started
 
 ### 1. Clone the repository
 
-```bash
+``` bash
 git clone https://github.com/DebdutKundu-2005/IRCTC-Backend.git
 cd IRCTC-Backend
 ```
 
 ### 2. Create and activate a virtual environment
 
-macOS / Linux:
+**macOS / Linux**
 
-```bash
+``` bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
+**Windows**
+
+``` bash
+python -m venv venv
+venv\Scripts\activate
+```
+
 ### 3. Install dependencies
 
-Install the packages listed in your project's dependency file. If a `requirements.txt` file is available:
-
-```bash
+``` bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ### 4. Configure environment variables
 
-Create a local `.env` file using `.env.example` as a template. Configure your Django secret key, database credentials, email settings, and other required values.
+Create a local `.env` file or configure environment variables according
+to your project settings. **Do not commit real credentials or secret
+keys.**
 
-**Never commit your real `.env` file, passwords, API keys, or secret keys.**
+Example placeholders:
 
-### 5. Run database migrations
+``` env
+SECRET_KEY=replace-with-a-local-secret-key
+DEBUG=True
+DB_NAME=your_database_name
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_HOST=localhost
+DB_PORT=5432
+```
 
-```bash
+> These names are examples. Confirm the exact variable names expected by
+> `config/settings.py` and your environment-loading setup.
+
+### 5. Set up PostgreSQL
+
+Create a PostgreSQL database and user, then update your local
+configuration. Make sure PostgreSQL is running before starting Django.
+
+### 6. Run migrations
+
+``` bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Start Redis
+### 7. Create a superuser (optional)
 
-Ensure Redis is installed and running before starting background tasks.
-
-Check the connection with:
-
-```bash
-redis-cli ping
+``` bash
+python manage.py createsuperuser
 ```
 
-Expected output:
+### 8. Start the development server
 
-```text
-PONG
-```
-
-### 7. Start the Django server
-
-```bash
+``` bash
 python manage.py runserver
 ```
 
-### 8. Start the Celery worker
+The local API server will normally be available at
+`http://127.0.0.1:8000/`. Use the routes configured in the project to
+access individual endpoints.
 
-In a separate terminal, activate the virtual environment and run:
+------------------------------------------------------------------------
 
-```bash
-celery -A config worker -l info
+## 🔄 Running Background Tasks
+
+If Celery and Redis are configured locally, start Redis first, then run
+a Celery worker in a separate terminal:
+
+``` bash
+celery -A config worker --loglevel=info
 ```
 
-## API Documentation
+This command assumes `config` is the Celery app path. If your Celery app
+is configured differently, use the path from your source code.
 
-When the development server is running, open the Swagger UI endpoint configured in `config/urls.py`.
+------------------------------------------------------------------------
 
-The exact URL depends on the project's current URL configuration.
+## 🧪 Run Tests
 
-## Testing
-
-Run the project's tests with:
-
-```bash
+``` bash
 python manage.py test
 ```
 
-To run the booking and payment tests specifically:
+If the project uses additional test configuration, follow the
+instructions in the relevant test files.
 
-```bash
-python manage.py test payments.tests bookings.tests
+------------------------------------------------------------------------
+
+## 📖 API Documentation
+
+The project uses `drf-spectacular` for OpenAPI schema generation. The
+exact documentation URL depends on the configured URL patterns.
+
+Common routes may look like:
+
+``` text
+/api/schema/
+/api/docs/
 ```
 
-## Fare Calculation
+If these routes do not open, check `config/urls.py` for the actual
+schema and Swagger UI paths.
 
-The project uses configurable demo fare rates based on train type and travel class. These are development rates and **are not official IRCTC fares**.
+------------------------------------------------------------------------
 
-## Security Notes
+## 🔐 Security Notes
 
-- Keep `.env` private.
-- Use a strong, randomly generated Django `SECRET_KEY`.
-- Do not expose database credentials or email passwords.
-- Set `DEBUG=False` and configure production security settings before deployment.
+-   Keep `.env` files, database passwords, Django secret keys, tokens,
+    and production credentials out of Git.
+-   Keep `DEBUG=False` in production.
+-   Configure `ALLOWED_HOSTS` and trusted origins for the deployment
+    environment.
+-   Use strong, unique credentials and rotate any secret that has been
+    exposed.
+-   Apply authorization checks to booking and payment operations.
+-   Use HTTPS and production-grade email/database settings before
+    deployment.
 
-## Project Status
+------------------------------------------------------------------------
 
-Under development. Features and configuration may change as development continues.
+## 🛣️ Possible Future Improvements
 
-## Author
+-   Complete and verify fare rules for different train types and travel
+    classes.
+-   Add more booking lifecycle and waiting-list scenarios.
+-   Expand payment integration and refund workflows.
+-   Add broader unit and integration test coverage.
+-   Add Docker-based local development and deployment.
+-   Set up CI checks and production deployment documentation.
+
+------------------------------------------------------------------------
+
+## 👨‍💻 Author
 
 **Debdut Kundu**
 
-GitHub: [DebdutKundu-2005](https://github.com/DebdutKundu-2005)
+-   GitHub: [@soumen-mudi](https://github.com/DebdutKundu-2005)
+-   LinkedIn: [Soumen
+    Mudi](https://www.linkedin.com/)
+
+------------------------------------------------------------------------
+
+⭐ If you find this project useful, consider giving the repository a
+star.
